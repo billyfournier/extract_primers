@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+# file extract_primers.py
+''' Extract Primers from sequence reads, for .fastq and .fasta files. 
+'''
+__author__ = "Billy Fournier"
+__license__ = "GPL"
+__email__ = "billyfournier2000@yahoo.com"
+
+
+primers = ["gattag","taggat"]
+
+largestPrimer = max(len(str) for str in primers)
+
+def removePrimers(inFile,outFile,primerList,tolerance):
+	items = ["@","+"]	
+	with open(inFile) as input, open(outFile,"w") as output:
+		for line in input:
+			if line[0] in items:
+				output.write(line)
+			else:
+				str = line
+				indexList = []
+				for primer in primers:
+					length = len(primer)
+					for i in range(len(str)-length):
+						window = str[i:i+length]
+						if hammingDistance(window,primer) <= tolerance:
+							indexList.append(i+length)
+				if len(indexList) is 2:
+					output.write(str[indexList[0]:indexList[1]] + "\n") 
+	
+removePrimers("test","testout",primers,0)
