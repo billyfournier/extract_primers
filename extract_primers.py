@@ -18,28 +18,38 @@ from os.path import join
 from os import rename
 from re import compile
 
-from skbio.parse.sequences import parse_fastq
-from skbio.sequence import DNA
-from skbio.format.sequences import format_fastq_record
+# from skbio.parse.sequences import parse_fastq
+# from skbio.format.sequences import format_fastq_record
+from skbio.sequence import DNA #requires scikit-bio
 
-from qiime.check_id_map import process_id_map
-from qiime.split_libraries_fastq import (check_header_match_pre180,
-                                         check_header_match_180_or_later)
-from qiime.parse import is_casava_v180_or_later
-from qiime.pycogent_backports.fastq import FastqParseError
+# from qiime.check_id_map import process_id_map
+# from qiime.split_libraries_fastq import (check_header_match_pre180,
+                                        #  check_header_match_180_or_later)
+# from qiime.parse import is_casava_v180_or_later
+# from qiime.pycogent_backports.fastq import FastqParseError
 
 def get_mappingfile_header(mapping_data):
     fin = open(mapping_data)
     header = fin.readline()
     return header
 
-# unit test. Be sure mappingfile
-#print get_mappingfile_header("mappingfile.txt")
-def get_mapping_data(mapping_file):
-    header, mapping_data, run_description, errors, warnings =\
-        process_id_map(mapping_file)
-    return mapping_data
 
+def process_mapping_file(mapping_data):
+    with open(mapping_data) as mappingfile:
+        header = mappingfile.readline()
+        header = header.split()
+
+        mapping_list = []
+        mapping_element = []
+        mappingfile.readline()
+        for line in mappingfile:
+            str = line
+            str = str.split()
+            for word in str:
+                mapping_element.append(word)
+            mapping_list.append(mapping_element)
+            mapping_element = []
+    return header, mapping_list
 
 
 def get_primers(header,
@@ -75,12 +85,12 @@ def get_primers(header,
         # Split on commas to handle pool of primers
         raw_forward_primers.update([upper(primer).strip() for
                                     primer in line[primer_ix].split(',')])
-        raw_forward_rc_primers.update([str(DNA(primer).rc()) for
-                                       primer in raw_forward_primers])
+        # raw_forward_rc_primers.update([str(DNA(primer).rc()) for
+        #                                primer in raw_forward_primers])
         raw_reverse_primers.update([upper(primer).strip() for
                                     primer in line[rev_primer_ix].split(',')])
-        raw_reverse_rc_primers.update([str(DNA(primer).rc()) for
-                                       primer in raw_reverse_primers])
+        # raw_reverse_rc_primers.update([str(DNA(primer).rc()) for
+        #                                primer in raw_reverse_primers])
 
     if not raw_forward_primers:
         raise ValueError(("No forward primers detected in mapping file."))
@@ -90,9 +100,10 @@ def get_primers(header,
     # Finding the forward primers, or rc of reverse primers indicates forward
     # read. Finding the reverse primer, or rc of the forward primers, indicates
     # the reverse read, so these sets are merged.
-    raw_forward_primers.update(raw_reverse_rc_primers)
-    raw_reverse_primers.update(raw_forward_rc_primers)
+    # raw_forward_primers.update(raw_reverse_rc_primers)
+    # raw_reverse_primers.update(raw_forward_rc_primers)
 
+    print raw_forward_primers
     forward_primers = []
     reverse_primers = []
     for curr_primer in raw_forward_primers:
@@ -101,15 +112,15 @@ def get_primers(header,
     for curr_primer in raw_reverse_primers:
         reverse_primers.append(compile(''.join([iupac[symbol] for
                                                 symbol in curr_primer])))
+    print forward_primers
 
     return forward_primers, reverse_primers
 
 
+header,mapping_data = process_mapping_file("mappingfile.txt")
 
-header = get_mappingfile_header("mappingfile.txt")
-mapping_data = get_mapping_data("mappingfile.txt")
-
-print get_primers(header,mapping_data)
+forward_primers, reverse_primers = get_primers(header,mapping_data)
+print forward_primers
 
 
 
