@@ -18,15 +18,6 @@ from os.path import join
 from os import rename
 from re import compile
 
-# from skbio.parse.sequences import parse_fastq
-# from skbio.format.sequences import format_fastq_record
-from skbio.sequence import DNA #requires scikit-bio
-
-# from qiime.check_id_map import process_id_map
-# from qiime.split_libraries_fastq import (check_header_match_pre180,
-                                        #  check_header_match_180_or_later)
-# from qiime.parse import is_casava_v180_or_later
-# from qiime.pycogent_backports.fastq import FastqParseError
 
 def get_mappingfile_header(mapping_data):
     fin = open(mapping_data)
@@ -85,12 +76,9 @@ def get_primers(header,
         # Split on commas to handle pool of primers
         raw_forward_primers.update([upper(primer).strip() for
                                     primer in line[primer_ix].split(',')])
-        # raw_forward_rc_primers.update([str(DNA(primer).rc()) for
-        #                                primer in raw_forward_primers])
         raw_reverse_primers.update([upper(primer).strip() for
                                     primer in line[rev_primer_ix].split(',')])
-        # raw_reverse_rc_primers.update([str(DNA(primer).rc()) for
-        #                                primer in raw_reverse_primers])
+
 
     if not raw_forward_primers:
         raise ValueError(("No forward primers detected in mapping file."))
@@ -106,7 +94,8 @@ def get_primers(header,
     print raw_forward_primers
     forward_primers = []
     reverse_primers = []
-    for curr_primer in raw_forward_primers:
+    
+	for curr_primer in raw_forward_primers:
         forward_primers.append(compile(''.join([iupac[symbol] for
                                                 symbol in curr_primer])))
     for curr_primer in raw_reverse_primers:
