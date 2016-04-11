@@ -3,9 +3,21 @@
 # var = {'A': 'A', 'N': 'ATCG'}
 # lst = ['AN']
 
-var = {'A': 'A', 'N': 'ATCG', 'K': 'GT'}
-lst = ['ANK']
+# var = {'A': 'A', 'N': 'ATCG', 'K': 'GT'}
+# lst = ['ANK']
 
+# var = {'A': 'A', 'W': 'AT', 'K': 'GT'}
+# lst = ['AWK']
+
+var = {'A': 'A', 'T': 'T', 'G': 'G', 'C': 'C', 'R': 'AG', 'Y': 'CT',
+         'S': 'GC', 'W': 'AT', 'K': 'GT', 'M': 'AC', 'B': 'CGT',
+         'D': 'AGT', 'H': 'ACT', 'V': 'ACG', 'N': 'ACGT'}
+
+# var = {'A': 'A', 'V': 'ACG', 'K': 'GT'}
+# lst = ['AKV']
+
+# lst = ['CAGCMGCCGCGGTAA']
+lst = ['TACNVGGGTATCTAATCC']
 
 
 def get_string_count(sequence,nucleotide_variable):
@@ -14,80 +26,55 @@ def get_string_count(sequence,nucleotide_variable):
         for ch in word:
             exp_str_total = exp_str_total * len(nucleotide_variable[ch])
     return exp_str_total
-# print get_string_count(lst,var)
+
+def create_perms(base_value,sequence_list):
+    # Total sequence count needs to be divided by length
+    # of base variations
+    num_base = len(base_value)
+    len_sl = len(sequence_list)
+    cut_num = len_sl / num_base
+    for index,items in enumerate(sequence_list):
+        # index/cut_num
+        base = index/cut_num
+        items.append(var[ch][base])
+    # print sequence_list, '\n'
 
 
 sequence_list = []
-sequence = []
-
 for word in lst:
     sequence_list = [[]]
 
     for ch in word:
-        # print "ch in word:"
-        to_add = (len(var[ch]) * len(sequence_list)) - len(sequence_list)
-        # print "to_add is: "
-        # print to_add
-
-# spot is not variable, so copy it to all sequence copies
+        # Base is not variable so append it to all seq
         if len(var[ch]) is 1:
-            # print len(var[ch])
-            # print "IF"
-            for string in sequence_list:
-                string.append(ch)
-            # print sequence_list
-# spot is variable, so must create new sequence primers
-        else:
-            # print "ELSE"
-            # print sequence_list
+            for seq in sequence_list:
+                seq.append(ch)
+
+
+        else:    # Base is variable so...
             # First time primers are added. **Edge case**
             if len(sequence_list) is 1:
-                # print "if"
-                # print sequence_list
-                for i in range(1,4):
-                    sequence_list.append([])
-                    # print ''.join(sequence_list[0])
-                    sequence_list[i].append(''.join(sequence_list[0]))
+                to_add = len(var[ch]) - 1
+                for i in range(to_add):
+                    sequence_list.append(list( sequence_list[0] ))
                     # print sequence_list
+                create_perms(var[ch],sequence_list)
+                print "\n***First Time Primer Finished***\n"
 
-            # create n copies of sequence primer list
+
+            # Adding "n" new sequences to sequence primer list
             else:
-                for i in range( len(var[ch]) - 1 ):
-                    for j in range(len(sequence_list)):
-                        sequence_list.append(sequence_list[j])
-                # print "else"
-                # print sequence_list
-
-
-            # print "\n\n"
-            # print sequence_list
-            # for index,items in enumerate(sequence_list):
-            #     print index, items
-            #     good_index = index % len(var[ch])
-            #     print var[ch][good_index]
-            #     print sequence_list
-            #
-            #     items.append(var[ch][good_index])
-            #     print items
-            #     print '\n'
-            # print sequence_list
-
-            # print "\n\n"
-            # print "starting with", sequence_list
-            # for index,item in enumerate(var[ch]):
-            #     print "index is: ", index, "\titem is: ", item
-            #     for index2, seq in enumerate(sequence_list):
-            #         # print "len(item) is: ", len(item)
-            #         # print "index2+1 is: ", index2+1
-            #         good_index = index2 / len(var[ch])
-            #         print "length: ",len(var[ch])
-            #         # print "good_index is: " , good_index
-            #         # print items[good_index]
-            #         if good_index is index:
-            #             seq.append(item)
-            #             print sequence_list
-            # print "ending with", sequence_list
+                print 'beginning of else:'
+                to_add = len(var[ch]) * len(sequence_list) - len(sequence_list)
+                for i in range( to_add ):
+                    sequence_list.append(list( sequence_list[i] ))
+                    # print sequence_list
+                create_perms(var[ch],sequence_list)
 
 
 
-# print sequence_list
+
+
+
+for index,seq in enumerate(sequence_list):
+    print index,seq
