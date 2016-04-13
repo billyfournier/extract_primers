@@ -71,35 +71,72 @@ def get_primers(mapping_file):
     return forward_primers, reverse_primers
 
 
+# sequence identifier beginning format
+# @<instrument>:<run number>:
+def remove_primers(read_file,out_name,primers,tolerance):
+
+
+    is_sequence = False
+    seq_passed = False
+    seq_identifier = ''
+    seq_data = ''
+    qual_data = ''
+    # print index_file
+    with open(read_file) as input:
+        tmp_str = input.readline()
+        index = tmp_str.find(':')
+        instrument_id = tmp_str[0:index]
+
+    with open(read_file) as input, open(out_name,"w") as output:
+        for index, line in enumerate(input):
+            # write qual data & Marker for sequence data
+
+            if instrument_id in line:
+                is_sequence = True
+                seq_identifier = line
+                if seq_passed:
+                    qual_data = qual_data[new_index:]
+                    output.write('+\n')
+
+                    # print ''.join(qual_data.split())
+                    output.write(qual_data)
+                seq_passed = False
+
+            # Marker for quality data and performs primer check
+            elif line.split() == ['+']:
+                is_sequence = False
+                for primer in forward_primers:
+                    new_index = seq_data.rfind(''.join(primer))
+                    if new_index is not -1:
+                        new_index = new_index + len(primer) - 1
+                        seq_data = seq_data[new_index:]
+                        if len(seq_data) > tolerance:
+                            # print ''.join(seq_identifier.split())
+                            # print ''.join(seq_data.split())
+                            output.write(seq_identifier)
+                            output.write(seq_data)
+                            seq_passed = True
+                            break
+
+            # Populate seq_data with sequence string
+            elif is_sequence:
+                seq_data = seq_data + line
+                qual_data = ''
+
+            # Populates qual_data & clears seq_data
+            elif not is_sequence:
+                qual_data = qual_data + line
+                seq_data = ''
+
+        if seq_passed:
+            qual_data = qual_data[new_index:]
+            # print "+"
+            # print ''.join(qual_data.split())
+            output.write('+\n')
+            output.write(qual_data)
+
 
 forward_primers, reverse_primers = get_primers("mappingfile.txt")
-
-
-for seq in forward_primers:
-    print seq
-# for seq in reverse_primers:
-#     print seq
-
-def removePrimers(inFile,outFile,primerList,tolerance):
-    items = ["@","+"]
-    with open(inFile) as input, open(outFile,"w") as output:
-        for line in input:
-            if line[0] in items:
-                output.write(line)
-            else:
-                str = line
-                indexList = []
-                for primer in primers:
-                    length = len(primer)
-                    for i in range(len(str)-length):
-                        window = str[i:i+length]
-                        if hammingDistance(window,primer) <= tolerance:
-                            indexList.append(i+length)
-                if len(indexList) is 2:
-                    output.write(str[indexList[0]:indexList[1]] + "\n")
-
-### unit test
-'''
-primers = ["gattag","taggat"]
-removePrimers("test","testout",primers,0)
-'''
+print reverse_primers
+remove_primers("read1_600.fastq", "out1.fastq", forward_primers, 50)
+remove_primers("read2_600.fastq", "out2.fastq", reverse_primers, 50)
