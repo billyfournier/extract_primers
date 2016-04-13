@@ -1,45 +1,33 @@
 #!/usr/bin/env python
 # file extract_primers.py
-from __future__ import division
-
 ''' Extract Primers from sequence reads, for .fastq and .fasta files.
 '''
 __author__ = "Billy Fournier"
 __license__ = "GPL"
 __email__ = "billyfournier2000@yahoo.com"
 
-
-
-import numpy as np
-
 from string import upper
-from itertools import izip, cycle
-from os.path import join
-from os import rename
-from re import compile
+from itertools import product
 
 
-def get_mappingfile_header(mapping_data):
-    fin = open(mapping_data)
-    header = fin.readline()
-    return header
-
+def gen_primer_list(mapping_primer):
+    var = {'A': 'A', 'T': 'T', 'G': 'G', 'C': 'C', 'R': 'AG', 'Y': 'CT',
+             'S': 'GC', 'W': 'AT', 'K': 'GT', 'M': 'AC', 'B': 'CGT',
+             'D': 'AGT', 'H': 'ACT', 'V': 'ACG', 'N': 'ACGT'}
+    if type(mapping_primer) is list:
+        poss = [var[c] for c in mapping_primer[0]]
+    if type(mapping_primer) is str:
+        poss = [var[c] for c in mapping_primer]
+    return list(product(*poss))
 
 def process_mapping_file(mapping_data):
     with open(mapping_data) as mappingfile:
-        header = mappingfile.readline()
-        header = header.split()
+        header = mappingfile.readline().split()
 
         mapping_list = []
-        mapping_element = []
-        mappingfile.readline()
+        mappingfile.readline() ### Could cause issues. ###
         for line in mappingfile:
-            str = line
-            str = str.split()
-            for word in str:
-                mapping_element.append(word)
-            mapping_list.append(mapping_element)
-            mapping_element = []
+            mapping_list.append(list(line.split()))
     return header, mapping_list
 
 
@@ -53,8 +41,7 @@ def get_primers(header,
     """
 
     if "LinkerPrimerSequence" in header:
-        primer_ix = header.index("LinkerPrimerSequence")
-        print primer_ix
+        primer_ix = header.index("LinkerPrimerSequence") # ix = index
     else:
         raise IndexError(
             ("Mapping file is missing LinkerPrimerSequence field."))
@@ -63,14 +50,8 @@ def get_primers(header,
     else:
         raise IndexError(("Mapping file is missing ReversePrimer field."))
 
-    iupac = {'A': 'A', 'T': 'T', 'G': 'G', 'C': 'C', 'R': '[AG]', 'Y': '[CT]',
-             'S': '[GC]', 'W': '[AT]', 'K': '[GT]', 'M': '[AC]', 'B': '[CGT]',
-             'D': '[AGT]', 'H': '[ACT]', 'V': '[ACG]', 'N': '[ACGT]'}
-
     raw_forward_primers = set([])
-    raw_forward_rc_primers = set([])
     raw_reverse_primers = set([])
-    raw_reverse_rc_primers = set([])
 
     for line in mapping_data:
         # Split on commas to handle pool of primers
@@ -79,47 +60,28 @@ def get_primers(header,
         raw_reverse_primers.update([upper(primer).strip() for
                                     primer in line[rev_primer_ix].split(',')])
 
-
     if not raw_forward_primers:
         raise ValueError(("No forward primers detected in mapping file."))
     if not raw_reverse_primers:
         raise ValueError(("No reverse primers detected in mapping file."))
 
-    # Finding the forward primers, or rc of reverse primers indicates forward
-    # read. Finding the reverse primer, or rc of the forward primers, indicates
-    # the reverse read, so these sets are merged.
-    # raw_forward_primers.update(raw_reverse_rc_primers)
-    # raw_reverse_primers.update(raw_forward_rc_primers)
-
-    print raw_forward_primers
-    forward_primers = []
-    reverse_primers = []
-    
-	for curr_primer in raw_forward_primers:
-        forward_primers.append(compile(''.join([iupac[symbol] for
-                                                symbol in curr_primer])))
-    for curr_primer in raw_reverse_primers:
-        reverse_primers.append(compile(''.join([iupac[symbol] for
-                                                symbol in curr_primer])))
-    print forward_primers
+    forward_primers = set([])
+    reverse_primers = set([])
+    for sequence in raw_forward_primers:
+        forward_primers |= set(gen_primer_list(sequence))
+    for sequence in raw_reverse_primers:
+        reverse_primers |= set(gen_primer_list(sequence))
 
     return forward_primers, reverse_primers
 
 
 header,mapping_data = process_mapping_file("mappingfile.txt")
-
 forward_primers, reverse_primers = get_primers(header,mapping_data)
-print forward_primers
 
-
-
-
-
-
-
-
-
-#largestPrimer = max(len(str) for str in primers)
+for seq in forward_primers:
+    print seq
+for seq in reverse_primers:
+    print seq
 
 def removePrimers(inFile,outFile,primerList,tolerance):
     items = ["@","+"]
