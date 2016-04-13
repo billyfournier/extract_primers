@@ -8,6 +8,35 @@ __email__ = "billyfournier2000@yahoo.com"
 
 from string import upper
 from itertools import product
+from optparse import OptionParser
+
+parser = OptionParser()
+parser.add_option("-f", "--forward_read", dest="forward_file",
+                        help="(default) read1.fastq", default="read1.fastq")
+parser.add_option("-r", "--reverse_read", dest="reverse_file",
+                        help="(default) read2.fastq", default="read2.fastq")
+parser.add_option("-o", "--forward_out", dest="forward_out",
+                        help="name of forward output file", default="out1.fastq")
+parser.add_option("-O", "--reverse_out", dest="reverse_out",
+                        help="name of reverse output file", default="out2.fastq")
+parser.add_option("-m", "--mapping_file", dest="mapping_file",
+                        default="mappingfile.txt", help="mappingfile for fastq")
+
+(options, args) = parser.parse_args()
+
+
+# if options.input_file is None:
+# 	print "ERROR: flag (-i) is required. "
+# 	print "       This is the PATH to your read.fastq file"
+# 	exit(-1)
+if options.mapping_file is None:
+	print "ERROR: flag (-m) is required. "
+	print "       This is the PATH to your mappingfile.txt"
+	exit(-1)
+# if options.output_file is None:
+# 	print "ERROR: flag (-o) is required. "
+# 	print "       This is the name of the output"
+# 	exit(-1)
 
 
 def gen_primer_list(mapping_primer):
@@ -20,6 +49,15 @@ def gen_primer_list(mapping_primer):
         poss = [var[c] for c in mapping_primer]
     return list(product(*poss))
 
+
+complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
+def reverse_complement(seq):
+    bases = list(seq)
+    bases = reversed([complement.get(base,base) for base in bases])
+    bases = list(bases)
+    return bases
+
+# print reverse_complement('AATTGGCC')
 
 def get_primers(mapping_file):
     """ Returns lists of forward/reverse primer regular expression generators
@@ -135,8 +173,15 @@ def remove_primers(read_file,out_name,primers,tolerance):
             output.write('+\n')
             output.write(qual_data)
 
+mapping_file = options.mapping_file
+forward_read = options.forward_file
+reverse_read = options.reverse_file
+forward_out = options.forward_out
+reverse_out = options.reverse_out
 
-forward_primers, reverse_primers = get_primers("mappingfile.txt")
-print reverse_primers
-remove_primers("read1_600.fastq", "out1.fastq", forward_primers, 50)
-remove_primers("read2_600.fastq", "out2.fastq", reverse_primers, 50)
+forward_primers, reverse_primers = get_primers(mapping_file)
+# print reverse_primers
+# for primer in list(reverse_primers):
+#     print ''.join(primer)
+remove_primers(forward_read, forward_out, forward_primers, 50)
+remove_primers(reverse_read, reverse_out, reverse_primers, 50)
