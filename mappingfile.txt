@@ -1,5 +1,5 @@
 #SampleID	BarcodeSequence	LinkerPrimerSequence	ReversePrimer	Experiment	Steer	Breed	Period	Phase	Day	Treatment	Description
-#12.21.2015.MiSeqSamples											
+#12.21.2015.MiSeqSamples
 Mad.9.12	ATCACGAGTCAA	CAGCMGCCGCGGTAA	TACNVGGGTATCTAATCC	Bell	10	2	1	1	7	0	IndexingPlate1A1
 529.12.23	ATCACGCGTACG	CAGCMGCCGCGGTAA	TACNVGGGTATCTAATCC	Bell	5	1	2	1	35	0	IndexingPlate1A10
 BB.12.23	ATCACGGAGTGG	CAGCMGCCGCGGTAA	TACNVGGGTATCTAATCC	Bell	4	2	2	1	35	0	IndexingPlate1A11

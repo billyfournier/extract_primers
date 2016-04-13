@@ -20,25 +20,22 @@ def gen_primer_list(mapping_primer):
         poss = [var[c] for c in mapping_primer]
     return list(product(*poss))
 
-def process_mapping_file(mapping_data):
-    with open(mapping_data) as mappingfile:
-        header = mappingfile.readline().split()
 
-        mapping_list = []
-        mappingfile.readline() ### Could cause issues. ###
-        for line in mappingfile:
-            mapping_list.append(list(line.split()))
-    return header, mapping_list
-
-
-def get_primers(header,
-                mapping_data):
+def get_primers(mapping_file):
     """ Returns lists of forward/reverse primer regular expression generators
     header:  list of strings of header data.
     mapping_data:  list of lists of mapping data
     Will raise error if either the LinkerPrimerSequence or ReversePrimer fields
         are not present
     """
+    # processing mapping_file into header and mapping_data
+    with open(mapping_file) as mappingfile:
+        header = mappingfile.readline().split()
+        mapping_data = []
+        mappingfile.readline() ### Could cause issues. ###
+        for line in mappingfile:
+            mapping_data.append(list(line.split()))
+
 
     if "LinkerPrimerSequence" in header:
         primer_ix = header.index("LinkerPrimerSequence") # ix = index
@@ -52,7 +49,6 @@ def get_primers(header,
 
     raw_forward_primers = set([])
     raw_reverse_primers = set([])
-
     for line in mapping_data:
         # Split on commas to handle pool of primers
         raw_forward_primers.update([upper(primer).strip() for
@@ -75,13 +71,14 @@ def get_primers(header,
     return forward_primers, reverse_primers
 
 
-header,mapping_data = process_mapping_file("mappingfile.txt")
-forward_primers, reverse_primers = get_primers(header,mapping_data)
+
+forward_primers, reverse_primers = get_primers("mappingfile.txt")
+
 
 for seq in forward_primers:
     print seq
-for seq in reverse_primers:
-    print seq
+# for seq in reverse_primers:
+#     print seq
 
 def removePrimers(inFile,outFile,primerList,tolerance):
     items = ["@","+"]
