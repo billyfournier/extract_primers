@@ -49,7 +49,16 @@ def gen_primer_list(mapping_primer):
         poss = [var[c] for c in mapping_primer]
     return list(product(*poss))
 
+"""Returns the reverse complement of a nucleotide sequence
 
+The string sequence's complement is generated and then
+the order of the compment is reversed.
+
+Example:
+sequence "AATTCC" is used to create its complement:
+complement "TTAAGG", then this complement is reversed:
+reverse complement "GGAATT".
+"""
 complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
 def reverse_complement(seq):
     bases = list(seq)
@@ -57,12 +66,11 @@ def reverse_complement(seq):
     bases = list(bases)
     return bases
 
-# print reverse_complement('AATTGGCC')
 
 def get_primers(mapping_file):
-    """ Returns lists of forward/reverse primer regular expression generators
-    header:  list of strings of header data.
-    mapping_data:  list of lists of mapping data
+    """ Generates and returns all forward and reverse primer combinations 
+    from the mapping file.
+    mapping_data:  the sequenced data's mapping file
     Will raise error if either the LinkerPrimerSequence or ReversePrimer fields
         are not present
     """
@@ -89,9 +97,10 @@ def get_primers(mapping_file):
     raw_reverse_primers = set([])
     for line in mapping_data:
         # Split on commas to handle pool of primers
-        raw_forward_primers.update([upper(primer).strip() for
+        if len(line) >= rev_primer_ix:
+            raw_forward_primers.update([upper(primer).strip() for
                                     primer in line[primer_ix].split(',')])
-        raw_reverse_primers.update([upper(primer).strip() for
+            raw_reverse_primers.update([upper(primer).strip() for
                                     primer in line[rev_primer_ix].split(',')])
 
     if not raw_forward_primers:
@@ -112,8 +121,6 @@ def get_primers(mapping_file):
 # sequence identifier beginning format
 # @<instrument>:<run number>:
 def remove_primers(read_file,out_name,primers,tolerance):
-
-
     is_sequence = False
     seq_passed = False
     seq_identifier = ''
@@ -181,7 +188,7 @@ reverse_out = options.reverse_out
 
 forward_primers, reverse_primers = get_primers(mapping_file)
 # print reverse_primers
-# for primer in list(reverse_primers):
-#     print ''.join(primer)
+for primer in list(forward_primers):
+    print ''.join(primer)
 remove_primers(forward_read, forward_out, forward_primers, 50)
 remove_primers(reverse_read, reverse_out, reverse_primers, 50)
