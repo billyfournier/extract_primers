@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # USAGE:
-# strip_primers_fastq.py <read1> <read2> <out1> <out2> <mappingfile>
+# extract_primers.py <read1> <read2> <out1> <out2> <mappingfile>
 
 
 from sys import argv
